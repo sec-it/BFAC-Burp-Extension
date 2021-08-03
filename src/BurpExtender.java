@@ -15,6 +15,7 @@ import java.util.List;
 import javax.swing.ButtonGroup;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -22,8 +23,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
+import javax.swing.text.DefaultCaret;
 import javax.swing.text.StyledDocument;
 
 
@@ -32,14 +32,18 @@ public class BurpExtender implements IBurpExtender, ITab{
 	public String long_title = "Backup File Artifacts Checker";
 	private PrintWriter stdout;
     private PrintWriter stderr;
-    private IBurpExtenderCallbacks callbacks;
+    public IBurpExtenderCallbacks callbacks;
+    public boolean isRunning = false;
+	public JTextPane outputPane;
     private IExtensionHelpers helpers;
     private JPanel panel;
     private IHttpRequestResponse[] sitemap;
 	private JRadioButton butScopeOnly;
-	private JTextPane outputPane;
 	private JTextField badExt;
-    
+	public JComboBox<String> levelsList;
+	private Thread bfacThread;
+	public JButton butRun;
+
 	@Override
     public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks)
     {
@@ -47,7 +51,7 @@ public class BurpExtender implements IBurpExtender, ITab{
         this.callbacks = callbacks;
         this.callbacks.setExtensionName(this.title);
         this.helpers = this.callbacks.getHelpers();
-        
+
         // obtain our output and error streams
         this.stdout = new PrintWriter(callbacks.getStdout(), true);
         this.stderr = new PrintWriter(callbacks.getStderr(), true);
@@ -57,6 +61,7 @@ public class BurpExtender implements IBurpExtender, ITab{
     }
 
 	private void setITab() {
+		/* UI */
 		this.panel = new JPanel();
 		JLabel title = new JLabel(this.long_title);
 
@@ -72,7 +77,7 @@ public class BurpExtender implements IBurpExtender, ITab{
 
 		JLabel labelBadExt = new JLabel();
         labelBadExt.setText("Ingore extension");
-		this.badExt = new JTextField("gif,jpg,png,css,js,ico,svg,eot,woff,woff2,ttf");
+		this.badExt = new JTextField("gif,jpg,jpeg,png,css,js,ico,svg,eot,woff,woff2,ttf");
 		badExt.setMaximumSize(new Dimension(200, 20));
 		
         JButton butExtract = new JButton("Extract URL");
@@ -81,12 +86,18 @@ public class BurpExtender implements IBurpExtender, ITab{
 				printURL();
 			} 
     	});
-        JButton butRun = new JButton("Run BFAC");
+        this.butRun = new JButton("Run BFAC");
         butRun.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) {
 				runBFAC();
 			} 
     	});
+
+        String[] levels = {"Level 1","Level 2","Level 3","Level 4","Level 5"}; 
+        this.levelsList = new JComboBox<>(levels);
+        levelsList.setSelectedIndex(4); // Level 5 by default
+        levelsList.setMaximumSize(new Dimension(100, 20));
+    
         JButton butClear = new JButton("Clear Log");
         butClear.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) {
@@ -102,6 +113,11 @@ public class BurpExtender implements IBurpExtender, ITab{
         JLabel titleOutput = new JLabel("Output");
         titleOutput.setFont(new Font("Tahoma", Font.BOLD, 14));
         JTextPane outputPane = new JTextPane();
+        outputPane.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
+        outputPane.setEditable(false);
+        DefaultCaret caret = (DefaultCaret)outputPane.getCaret();
+        caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+        
         this.outputPane = outputPane;
         JScrollPane scrollPane = new JScrollPane(outputPane);
         GroupLayout layout = new GroupLayout(this.panel);
@@ -129,9 +145,11 @@ public class BurpExtender implements IBurpExtender, ITab{
                         .addGap(10,10,10)
                         .addComponent(butExtract)
                         .addGap(10,10,10)
+                        .addComponent(butClear)
+                        .addGap(10,10,10)
                         .addComponent(butRun)
                         .addGap(10,10,10)
-                        .addComponent(butClear))
+                        .addComponent(levelsList))
                     .addGap(15,15,15)
                     .addComponent(titleOutput)
                     .addComponent(scrollPane))
@@ -153,8 +171,9 @@ public class BurpExtender implements IBurpExtender, ITab{
                 .addGap(20,20,20)
                 .addGroup(layout.createParallelGroup()
                         .addComponent(butExtract)
+                        .addComponent(butClear)
                         .addComponent(butRun)
-                        .addComponent(butClear))
+                        .addComponent(levelsList))
                 .addGap(20,20,20)
                 .addComponent(titleOutput)
                 .addGap(5,5,5)
@@ -165,7 +184,7 @@ public class BurpExtender implements IBurpExtender, ITab{
 	private void printURL() {
 		this.clearLog();
 		StyledDocument doc = this.outputPane.getStyledDocument();
-		for(String u : this.bfac()) {
+		for(String u : this.extractSitemap()) {
 		    try {
 				doc.insertString(doc.getLength(), u+"\n", null );
 			} catch (BadLocationException e) {}
@@ -173,35 +192,28 @@ public class BurpExtender implements IBurpExtender, ITab{
 	}
 
 	private void runBFAC() {
-		this.clearLog();
-		StyledDocument doc = this.outputPane.getStyledDocument();
-		
-		//  Define a keyword attribute
-	
-		SimpleAttributeSet keyWord = new SimpleAttributeSet();
-		StyleConstants.setForeground(keyWord, Color.RED);
-		StyleConstants.setBackground(keyWord, Color.YELLOW);
-		StyleConstants.setBold(keyWord, true);
-	
-		//  Add some text
-	
-		try{
-		    doc.insertString(0, "Start of text\n", null );
-		    doc.insertString(doc.getLength(), "\nEnd of text", keyWord );
+		if (isRunning) {
+			isRunning = false; 
+			butRun.setText("Run BFAC");
+		}else {
+			isRunning = true;
+			this.clearLog();
+			butRun.setText("Stop BFAC");
+		    bfacThread = new Thread(new BFAC(this));
+		    bfacThread.start();
 		}
-		catch(Exception e){}
 	}
 	private void clearLog() {
-		this.outputPane.setText("");
+		outputPane.setText("");
 	}
 
-	private LinkedHashSet<String> bfac(){
-		this.sitemap = this.callbacks.getSiteMap(null);
-		String badExtStr = this.badExt.getText();
+	public LinkedHashSet<String> extractSitemap(){
+		this.sitemap = callbacks.getSiteMap(null);
+		String badExtStr = badExt.getText();
 		List<String> badExts = Arrays.asList(badExtStr.split("\\s*,\\s*"));
 
 		LinkedHashSet<String> urls = new LinkedHashSet<String>();
-        for (IHttpRequestResponse r : this.sitemap){ // For each element of sitemap
+        for (IHttpRequestResponse r : sitemap){ // For each element of sitemap
         	try {
         		byte[] tReq = r.getRequest();
         		byte[] tRep = r.getResponse();
@@ -211,7 +223,7 @@ public class BurpExtender implements IBurpExtender, ITab{
         		IRequestInfo req = this.helpers.analyzeRequest(r);
         		IResponseInfo rep = this.helpers.analyzeResponse(tRep);
         		URL url = req.getUrl();
-        		this.stdout.println(url.toString());
+        		stdout.println(url.toString());
 				if (req.getHeaders().size() <= 0){
 					continue;
 				}
@@ -220,9 +232,10 @@ public class BurpExtender implements IBurpExtender, ITab{
 	        		continue;
 	        	}
 	        	String cleanPath = url.toString().split("#")[0].split("\\?")[0];
+	        	cleanPath = cleanPath.replaceAll("/+$", ""); // remove trailing /
             	// If path end with an ext
             	if (cleanPath.matches(".*([.])[a-z]+$")){
-            		if (!(this.butScopeOnly.isSelected()) || this.callbacks.isInScope(url) ){
+            		if (!(butScopeOnly.isSelected()) || callbacks.isInScope(url) ){
             			boolean addPath = true;
             			for (String ext: badExts) {
             				if(cleanPath.endsWith("."+ext)) {
@@ -236,7 +249,7 @@ public class BurpExtender implements IBurpExtender, ITab{
             	}
         	} catch (Exception e) {
 				// Request or response is malformated, continue
-        	    this.stderr.println(e);  
+        	    stderr.println(e);  
         		continue; 
 			}
         }
@@ -245,13 +258,11 @@ public class BurpExtender implements IBurpExtender, ITab{
 
 	@Override
 	public String getTabCaption() {
-		return this.title;
+		return title;
 	}
 
 	@Override
 	public Component getUiComponent() {
-		// TODO Auto-generated method stub
-		return this.panel;
+		return panel;
 	}
-
 }
