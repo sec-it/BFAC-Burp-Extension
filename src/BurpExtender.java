@@ -30,20 +30,20 @@ import javax.swing.text.StyledDocument;
 public class BurpExtender implements IBurpExtender, ITab{
 	public String title = "BFAC";
 	public String long_title = "Backup File Artifacts Checker";
-	private PrintWriter stdout;
-    private PrintWriter stderr;
-    public IBurpExtenderCallbacks callbacks;
     public boolean isRunning = false;
-	public JTextPane outputPane;
-    private IExtensionHelpers helpers;
+	PrintWriter stdout;
+	PrintWriter stderr;
+    IBurpExtenderCallbacks callbacks;
+	JTextPane outputPane;
+	JComboBox<String> levelsList;
+	JButton butRun;
+	private IExtensionHelpers helpers;
     private JPanel panel;
     private IHttpRequestResponse[] sitemap;
 	private JRadioButton butScopeOnly;
 	private JTextField badExt;
-	public JComboBox<String> levelsList;
 	private Thread bfacThread;
-	public JButton butRun;
-
+	
 	@Override
     public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks)
     {
@@ -134,13 +134,13 @@ public class BurpExtender implements IBurpExtender, ITab{
                         .addComponent(butScopeOnly)
                         .addGap(10,10,10)
                         .addComponent(butFull))
-                    .addGap(15,15,15)
+                    .addGap(10,10,10)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(10,10,10)
                         .addComponent(labelBadExt)
                         .addGap(10,10,10)
                         .addComponent(badExt))
-                    .addGap(15,15,15)
+                    .addGap(10,10,10)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(10,10,10)
                         .addComponent(butExtract)
@@ -158,25 +158,24 @@ public class BurpExtender implements IBurpExtender, ITab{
         layout.setVerticalGroup(
             layout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(15,15,15)
+                .addGap(10,10,10)
                 .addComponent(title)
-                .addGap(15,15,15)
+                .addGap(10,10,10)
                 .addGroup(layout.createParallelGroup()
                     .addComponent(butScopeOnly)
                     .addComponent(butFull))
-                .addGap(20,20,20)
+                .addGap(10,10,10)
                 .addGroup(layout.createParallelGroup()
                     .addComponent(labelBadExt)
                     .addComponent(badExt))
-                .addGap(20,20,20)
+                .addGap(10,10,10)
                 .addGroup(layout.createParallelGroup()
                         .addComponent(butExtract)
                         .addComponent(butClear)
                         .addComponent(butRun)
                         .addComponent(levelsList))
-                .addGap(20,20,20)
+                .addGap(15,15,15)
                 .addComponent(titleOutput)
-                .addGap(5,5,5)
                 .addComponent(scrollPane)
                 .addGap(20,20,20)));
 	}
@@ -223,7 +222,7 @@ public class BurpExtender implements IBurpExtender, ITab{
         		IRequestInfo req = this.helpers.analyzeRequest(r);
         		IResponseInfo rep = this.helpers.analyzeResponse(tRep);
         		URL url = req.getUrl();
-        		stdout.println(url.toString());
+        		//stdout.println(url.toString());
 				if (req.getHeaders().size() <= 0){
 					continue;
 				}

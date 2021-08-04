@@ -4,7 +4,11 @@ import java.awt.Color;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 
+import javax.swing.text.BadLocationException;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
@@ -23,7 +27,9 @@ public class BFAC implements Runnable {
 	private SimpleAttributeSet kYellow;
 	private SimpleAttributeSet kCyan;
 	private SimpleAttributeSet kGreen;
+	private SimpleAttributeSet kRed;
 	private ArrayList<ArrayList<String>> levelsList;
+	private LinkedList<ConcurrentHashMap<String, IResponseInfo>> repList;
 
     public BFAC(BurpExtender extender) {
        this.extender = extender;
@@ -42,6 +48,9 @@ public class BFAC implements Runnable {
 
 		this.kGreen = new SimpleAttributeSet();
 		StyleConstants.setForeground(kGreen, Color.GREEN);
+
+		this.kRed = new SimpleAttributeSet();
+		StyleConstants.setForeground(kRed, Color.RED);
     }
 
     public void run() {
@@ -98,16 +107,15 @@ public class BFAC implements Runnable {
 		}
 		catch(Exception e){}
     }
+
     private void loopLevel(URL originalUrl, String cleanPath) {
 
-		URL url = null;
 		boolean isHttps = originalUrl.getProtocol().startsWith("https");
 		String host = originalUrl.getHost();
-		int port = originalUrl.getPort();
+		int portTmp = originalUrl.getPort();
 		
-		if (port == -1) {
-			port = isHttps ? 443 : 80;
-		}
+		final int port = (portTmp != -1) ? portTmp : (isHttps ? 443 : 80);
+		
 
 		String dirPath = cleanPath.substring(0, cleanPath.lastIndexOf('/'))+"/";
 		String fileName = "";
@@ -118,34 +126,84 @@ public class BFAC implements Runnable {
 		
 		this.initLevels(fileName);
 
+		int threadMax = 10;
+		ArrayBlockingQueue<String> thList = new ArrayBlockingQueue<>(threadMax);
+		repList = new LinkedList<ConcurrentHashMap<String,IResponseInfo>>();
+		
 		int runLevel = this.extender.levelsList.getSelectedIndex(); // Get selected level
 		for (i=0; i<=runLevel; i++) {
 			for (String file : levelsList.get(i)) {
 				if (this.extender.isRunning == false) {
 					return; // equivalent to thread.stop();
 				}
-				String urlString = dirPath + file;
-				try {
-					url  = new URL(urlString);
-				} catch (MalformedURLException e) { continue; }
-				byte[] response = callbacks.makeHttpRequest(host, port, isHttps, helpers.buildHttpRequest(url));
-				IResponseInfo rep = helpers.analyzeResponse(response);
-				int code = rep.getStatusCode();
-				if ((code >= 400) && (code < 500)){  // Avoid 400 error
-	        		continue;
-	        	}
-				String respCode = Integer.toString(rep.getStatusCode());
-				String contLen = Integer.toString(rep.toString().length());
-				try{
-					doc.insertString(doc.getLength(), "[$] ", kGreen);
-					doc.insertString(doc.getLength(), "Discovered: -> {"+urlString+"} ", null);
-					doc.insertString(doc.getLength(), "(Response-Code: "+respCode+" | Content-Length: "+contLen+")\n", null);
+				//this.extender.stdout.println("Thread : "+dirPath + file + " ==> "+Integer.toString(thList.size()));
+				while(thList.size() >= threadMax) {
+					//this.extender.stdout.println("Thread : "+dirPath + file + " ==> "+Integer.toString(thList.size()));
+					try {
+						Thread.sleep(100); // sleep 100 ms
+					} catch (InterruptedException e) {}
 				}
-				catch(Exception e){}
+
+            	String urlString = dirPath + file;
+            	thList.add(urlString);
+				new Thread(() -> {
+	        		URL url = null;
+					try {
+						url  = new URL(urlString);
+					} catch (MalformedURLException e) { 
+						return; 
+					}
+					byte[] response = callbacks.makeHttpRequest(host, port, isHttps, helpers.buildHttpRequest(url));
+					IResponseInfo rep = helpers.analyzeResponse(response);
+					int code = rep.getStatusCode();
+					if ((code >= 400) && (code < 500)){  // Avoid 400 error
+						thList.remove(urlString);
+		        		return;
+		        	}
+					// Add response to HashMap
+					ConcurrentHashMap<String, IResponseInfo> hRep = new ConcurrentHashMap<String,IResponseInfo>();
+					hRep.put(urlString, rep);
+					repList.offer(hRep);
+		            thList.remove(urlString);
+		        }).start();
+				this.processRespList();
+			}
+		}
+		while(thList.size() > 0) {  // Wait until all threads ends
+			try {
+				Thread.sleep(100); // sleep 100 ms
+			} catch (InterruptedException e) {}
+		}
+		this.processRespList();
+    }
+
+    private void processRespList() {
+    	// Unload Queue and print to doc. Doc is not thread safe, thats why we need a queue
+		while ( !repList.isEmpty() ) {
+			ConcurrentHashMap<String, IResponseInfo> repMap = repList.poll();
+		    String key = "";
+			if (repMap.isEmpty()) {
+				this.extender.stderr.println("Empty error");
+				continue; // Should not happen but repMap.keySet() is blocking without this line
+			}
+			//this.extender.stdout.println(repMap.keySet());
+		    for (String k : repMap.keySet()) {
+		    	key = k;
+		    }
+		    IResponseInfo rep = repMap.get(key);
+
+			String respCode = Integer.toString(rep.getStatusCode());
+			String contLen = Integer.toString(rep.toString().length());
+
+			try {
+				doc.insertString(doc.getLength(), "[$] ", kGreen);
+				doc.insertString(doc.getLength(), "Discovered: -> {"+key+"} ", null);
+				doc.insertString(doc.getLength(), "(Response-Code: "+respCode+" | Content-Length: "+contLen+")\n", null);
+			} catch (BadLocationException e) {
+				this.extender.stderr.println(e);
 			}
 		}
     }
-
 
     private void initLevels(String filename) {
 
@@ -274,43 +332,24 @@ public class BFAC implements Runnable {
 	    level4.add(filename + "::$DATA");  // CVE-2017-12616
 
 	    // LEVEL 5
-	    level5.add("/.git/HEAD");
 	    level5.add(".git/HEAD");
-	    level5.add("/.git/index");
 	    level5.add(".git/index");
-	    level5.add("/.git/config");
 	    level5.add(".git/config");
-	    level5.add("/.gitignore");
 	    level5.add(".gitignore");
-	    level5.add("/.git-credentials");
 	    level5.add(".git-credentials");
-	    level5.add("/.bzr/README");
 	    level5.add(".bzr/README");
-	    level5.add("/.bzr/checkout/dirstate");
 	    level5.add(".bzr/checkout/dirstate");
-	    level5.add("/.hg/requires");
 	    level5.add(".hg/requires");
-	    level5.add("/.hg/store/fncache");
 	    level5.add(".hg/store/fncache");
-	    level5.add("/.svn/entries");
 	    level5.add(".svn/entries");
-	    level5.add("/.svn/all-wcprops");
 	    level5.add(".svn/all-wcprops");
 	    level5.add(".svn/wc.db");
-	    level5.add("/.svn/wc.db");
-	    level5.add("/.svnignore");
 	    level5.add(".svnignore");
-	    level5.add("/CVS/Entries");
 	    level5.add("CVS/Entries");
-	    level5.add("/.cvsignore");
 	    level5.add(".cvsignore");
-	    level5.add("/.idea/misc.xml");
 	    level5.add(".idea/misc.xml");
-	    level5.add("/.idea/workspace.xml");
 	    level5.add(".idea/workspace.xml");
-	    level5.add("/.DS_Store");
 	    level5.add(".DS_Store");
-	    level5.add("/composer.lock");
 	    level5.add("composer.lock");
 
 
