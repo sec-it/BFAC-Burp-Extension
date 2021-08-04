@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,6 +31,7 @@ public class BFAC implements Runnable {
 	private SimpleAttributeSet kRed;
 	private ArrayList<ArrayList<String>> levelsList;
 	private LinkedList<ConcurrentHashMap<String, IResponseInfo>> repList;
+	private int runLevel;
 
     public BFAC(BurpExtender extender) {
        this.extender = extender;
@@ -55,8 +57,20 @@ public class BFAC implements Runnable {
 
     public void run() {
     	this.printHeader();
+    	
+		// Reset progress bar maximum
+    	LinkedHashSet<String> sitemap = this.extender.extractSitemap();
+    	runLevel = this.extender.levelsList.getSelectedIndex(); // Get selected level
+		initLevels("/not.exist");
+		int progressMax = 0;
+		for (int i = 0; i<=runLevel; i++) {
+			progressMax += levelsList.get(i).size();
+		}
+		progressMax = progressMax*(sitemap.size());
+		this.extender.progress.setMaximum(progressMax);
+		// En reset
 
-		for(String urlString : this.extender.extractSitemap()) {
+		for(String urlString : sitemap) {
 			if (this.extender.isRunning == false) {
 				return; // equivalent to thread.stop();
 			}
@@ -125,12 +139,13 @@ public class BFAC implements Runnable {
 		}
 		
 		this.initLevels(fileName);
+		
 
 		int threadMax = 10;
 		ArrayBlockingQueue<String> thList = new ArrayBlockingQueue<>(threadMax);
 		repList = new LinkedList<ConcurrentHashMap<String,IResponseInfo>>();
 		
-		int runLevel = this.extender.levelsList.getSelectedIndex(); // Get selected level
+		
 		for (i=0; i<=runLevel; i++) {
 			for (String file : levelsList.get(i)) {
 				if (this.extender.isRunning == false) {
@@ -144,6 +159,7 @@ public class BFAC implements Runnable {
 					} catch (InterruptedException e) {}
 				}
 
+				this.extender.progress.setValue(this.extender.progress.getValue()+1);
             	String urlString = dirPath + file;
             	thList.add(urlString);
 				new Thread(() -> {
@@ -186,7 +202,6 @@ public class BFAC implements Runnable {
 				this.extender.stderr.println("Empty error");
 				continue; // Should not happen but repMap.keySet() is blocking without this line
 			}
-			//this.extender.stdout.println(repMap.keySet());
 		    for (String k : repMap.keySet()) {
 		    	key = k;
 		    }
@@ -359,6 +374,11 @@ public class BFAC implements Runnable {
 		levelsList.add(level3);
 		levelsList.add(level4);
 		levelsList.add(level5);
+		
+		for (ArrayList<String> x : levelsList) {
+			x.size();
+		}
+		
     }
     
  }

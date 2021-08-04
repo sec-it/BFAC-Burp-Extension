@@ -18,6 +18,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
@@ -37,6 +38,7 @@ public class BurpExtender implements IBurpExtender, ITab{
 	JTextPane outputPane;
 	JComboBox<String> levelsList;
 	JButton butRun;
+	JProgressBar progress;
 	private IExtensionHelpers helpers;
     private JPanel panel;
     private IHttpRequestResponse[] sitemap;
@@ -63,6 +65,7 @@ public class BurpExtender implements IBurpExtender, ITab{
 	private void setITab() {
 		/* UI */
 		this.panel = new JPanel();
+        panel.setMaximumSize(new Dimension(800, Short.MAX_VALUE));
 		JLabel title = new JLabel(this.long_title);
 
 		title.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
@@ -86,18 +89,7 @@ public class BurpExtender implements IBurpExtender, ITab{
 				printURL();
 			} 
     	});
-        this.butRun = new JButton("Run BFAC");
-        butRun.addActionListener(new ActionListener() { 
-			public void actionPerformed(ActionEvent e) {
-				runBFAC();
-			} 
-    	});
 
-        String[] levels = {"Level 1","Level 2","Level 3","Level 4","Level 5"}; 
-        this.levelsList = new JComboBox<>(levels);
-        levelsList.setSelectedIndex(4); // Level 5 by default
-        levelsList.setMaximumSize(new Dimension(100, 20));
-    
         JButton butClear = new JButton("Clear Log");
         butClear.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) {
@@ -105,10 +97,28 @@ public class BurpExtender implements IBurpExtender, ITab{
 			} 
     	});
 
+        this.butRun = new JButton("Run BFAC");
+        butRun.addActionListener(new ActionListener() { 
+			public void actionPerformed(ActionEvent e) {
+				runBFAC();
+			} 
+    	});
+        
 		ButtonGroup butGrp2 = new ButtonGroup();
 		butGrp2.add(butExtract);
-		butGrp2.add(butRun);
 		butGrp2.add(butClear);
+		butGrp2.add(butRun);
+		
+        String[] levels = {"Level 1","Level 2","Level 3","Level 4","Level 5"}; 
+        this.levelsList = new JComboBox<>(levels);
+        levelsList.setSelectedIndex(4); // Level 5 by default
+        levelsList.setMaximumSize(new Dimension(100, 20));
+
+        progress = new JProgressBar(0,100);  
+        progress.setMaximumSize(new Dimension(800, 15));  
+        //progress.setBounds(40,40,160,30);         
+        progress.setValue(0);    
+        progress.setStringPainted(true);
 
         JLabel titleOutput = new JLabel("Output");
         titleOutput.setFont(new Font("Tahoma", Font.BOLD, 14));
@@ -120,6 +130,7 @@ public class BurpExtender implements IBurpExtender, ITab{
         
         this.outputPane = outputPane;
         JScrollPane scrollPane = new JScrollPane(outputPane);
+        scrollPane.setMaximumSize(new Dimension(800, Short.MAX_VALUE));
         GroupLayout layout = new GroupLayout(this.panel);
         this.panel.setLayout(layout);
         
@@ -150,9 +161,18 @@ public class BurpExtender implements IBurpExtender, ITab{
                         .addComponent(butRun)
                         .addGap(10,10,10)
                         .addComponent(levelsList))
+                    .addGap(10,10,10)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(10,10,10)
+                        .addComponent(progress))
                     .addGap(15,15,15)
-                    .addComponent(titleOutput)
-                    .addComponent(scrollPane))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(10,10,10)
+                    	.addComponent(titleOutput))
+                    .addGap(10,10,10)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(10,10,10)
+                    	.addComponent(scrollPane)))
                 .addContainerGap(26, Short.MAX_VALUE)));
         
         layout.setVerticalGroup(
@@ -174,9 +194,15 @@ public class BurpExtender implements IBurpExtender, ITab{
                         .addComponent(butClear)
                         .addComponent(butRun)
                         .addComponent(levelsList))
+                .addGap(10,10,10)
+                .addGroup(layout.createParallelGroup()
+                        .addComponent(progress))
                 .addGap(15,15,15)
-                .addComponent(titleOutput)
-                .addComponent(scrollPane)
+                .addGroup(layout.createParallelGroup()
+	                .addComponent(titleOutput))
+                .addGap(10,10,10)
+                .addGroup(layout.createParallelGroup()
+	                .addComponent(scrollPane))
                 .addGap(20,20,20)));
 	}
 
@@ -193,9 +219,11 @@ public class BurpExtender implements IBurpExtender, ITab{
 	private void runBFAC() {
 		if (isRunning) {
 			isRunning = false; 
+	        progress.setValue(0);
 			butRun.setText("Run BFAC");
 		}else {
 			isRunning = true;
+	        progress.setValue(0);  
 			this.clearLog();
 			butRun.setText("Stop BFAC");
 		    bfacThread = new Thread(new BFAC(this));
@@ -203,6 +231,7 @@ public class BurpExtender implements IBurpExtender, ITab{
 		}
 	}
 	private void clearLog() {
+        progress.setValue(0);
 		outputPane.setText("");
 	}
 
@@ -222,7 +251,6 @@ public class BurpExtender implements IBurpExtender, ITab{
         		IRequestInfo req = this.helpers.analyzeRequest(r);
         		IResponseInfo rep = this.helpers.analyzeResponse(tRep);
         		URL url = req.getUrl();
-        		//stdout.println(url.toString());
 				if (req.getHeaders().size() <= 0){
 					continue;
 				}
