@@ -30,7 +30,7 @@ import javax.swing.text.StyledDocument;
 public class BurpExtender implements IBurpExtender, ITab {
 	public String title = "BFAC";
 	public String long_title = "Backup File Artifacts Checker";
-	public boolean isRunning = false;
+	boolean isRunning = false;
 	PrintWriter stdout;
 	PrintWriter stderr;
 	IBurpExtenderCallbacks callbacks;
@@ -122,6 +122,8 @@ public class BurpExtender implements IBurpExtender, ITab {
 		titleOutput.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
 
 		this.outputPane = new JTextPane();
+		outputPane.setBackground(new Color(60, 63, 65));
+		outputPane.setForeground(new Color(255, 255, 255));
 		outputPane.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
 		outputPane.setEditable(false);
 		DefaultCaret caret = (DefaultCaret) outputPane.getCaret();

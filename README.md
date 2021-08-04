@@ -2,6 +2,8 @@
 
 Burp Extension for BFAC (Advanced Backup-File Artifacts Testing for Web-Applications).
 
+![Screenshot](static/screenshot_light.png)
+
 ## What is BFAC - Burp Extension ?
 
 Backup files are too often overlooked by web application auditors. With the objective of democratizing the backup file tests and integrating these tests into the most used tool for web auditors, SEC-IT auditors worked on the integration of the BFAC checks as a BurpSuite plugin.
