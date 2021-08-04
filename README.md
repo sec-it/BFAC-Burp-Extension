@@ -29,12 +29,37 @@ Once loaded, you should see a "BFAC" tab :
 
 ![Install step 2](static/install_step_2.png)
 
+## How to use BFAC plugin ?
+
+BFAC Burp Extension is designed to look for backup files from the Burpsuite [sitemap].
+Therefore, **it is better to run BFAC Burp extension when the sitemap is full enough**.
+Sitemap fulfillment will not be covered here, however it can be accomplish using active scanners.
+
+Once your sitemap is full, you have 2 options.
+
+### The old way 
+
+[BFAC][bfac] original tool may provide interesting options that are not provided by this extension. That why you can extract interesting URLs from the sitemap using the "Extract URL".
+
+![Extract URL](static/extract_urls.png)
+
+Then, you only have to provide the extracted URLs to the [BFAC][bfac] tool :
+
+![BFAC Console](static/bfac_console.png)
+
+### The Burp way
+
+If you do not have [BFAC][bfac] on your computer or want to gain time, you can just click on "Run BFAC" to run a Java implementation of BFAC :
+
+![BFAC Console](static/screenshot_dark.png)
+
 ## Acknowledgments
 
-The [Site-map-extractor][sitemapextactor] BurpSuite plugin written by [@swright573][swright573] has been a great source of inspiration and helped us to better understand BurpSuite Extender API from a "site-map" point of view.
+The [Site-map-extractor][sitemapextactor] BurpSuite plugin written by [@swright573][swright573] has been a great source of inspiration and helped us to better understand BurpSuite Extender API from a "sitemap" point of view.
 
 [bfac]:https://github.com/mazen160/bfac
 [mazen160]:https://twitter.com/mazen160
 [sitemapextactor]:https://github.com/swright573/site-map-extractor
 [swright573]:https://github.com/swright573
 [jar]:bin/BFAC.jar
+[sitemap]:https://portswigger.net/burp/documentation/desktop/tools/target/site-map
