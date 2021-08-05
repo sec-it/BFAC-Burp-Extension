@@ -58,6 +58,14 @@ If you do not have [BFAC][bfac] on your computer or want to gain time, you can j
 
 ![BFAC Console](static/screenshot_dark.png)
 
+## Build the JAR
+
+If you want to contribute or modify the existing plugin, you may need to build an edited JAR. In order to accomplish that task, you may have a look at PortSwigger website : [Writing your first Burp Suite extension][devburp].
+
+To build the jar, create new Java project under your Java IDE (i.e. Eclipse). Create new package named `burp`. Import "burp interface files" in this package. Theses files can be found in Burp tool : `Extender` tab > `APIs` > `Save interfaces files` (at the bottom left of the pane). Then import Java classes provided in the [src](src/) folder, into the `burp` package. You can now modify the plugin as needed, and generate a JAR plugin (on Eclipse: `File` > `Export` > `Java` > `JAR file` > Select project and click on `Finish`).
+
+![Java IDE](static/java_ide.png)
+
 ## Acknowledgments
 
 The [Site-map-extractor][sitemapextactor] BurpSuite plugin written by [@swright573][swright573] has been a great source of inspiration and helped us to better understand BurpSuite Extender API from a "sitemap" point of view.
@@ -68,3 +76,4 @@ The [Site-map-extractor][sitemapextactor] BurpSuite plugin written by [@swright5
 [swright573]:https://github.com/swright573
 [jar]:bin/BFAC.jar
 [sitemap]:https://portswigger.net/burp/documentation/desktop/tools/target/site-map
+[devburp]:https://portswigger.net/burp/extender/writing-your-first-burp-suite-extension
