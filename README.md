@@ -1,5 +1,10 @@
 # BFAC - Burp Extension
 
+![Build](https://img.shields.io/badge/Built%20with-Java-Blue)
+[![GitHub forks](https://img.shields.io/github/forks/sec-it/BFAC-Burp-Extension)](https://github.com/sec-it/BFAC-Burp-Extension/network)
+[![GitHub stars](https://img.shields.io/github/stars/sec-it/BFAC-Burp-Extension)](https://github.com/sec-it/BFAC-Burp-Extension/stargazers)
+[![GitHub](https://img.shields.io/github/license/sec-it/BFAC-Burp-Extension)](https://github.com/sec-it/BFAC-Burp-Extension/blob/master/LICENSE)
+
 Burp Extension for [BFAC][bfac] (Advanced Backup-File Artifacts Testing for Web-Applications).
 
 ![Screenshot](static/screenshot_light.png)
