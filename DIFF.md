@@ -31,7 +31,7 @@ index.1 | X |   | X |
 index.7z | X |   | X |
 index.a |   |   | X |
 index.ar | X |   | X |
-index.bac |   |   | X |
+index.bac | X |   | X |
 index.back | X | X |   |
 index.backup | X | X | X |
 index.bak | X | X | X |
@@ -64,7 +64,7 @@ index.php. | X | X |   |
 index.php.0 | X | X |   |
 index.php.1 | X | X | X |
 index.php.2 | X | X |   |
-index.php.7z |   |   | X |
+index.php.7z | X |   | X |
 index.php.a |   |   | X |
 index.php.ar | X |   | X |
 index.php.arc | X | X |   |
