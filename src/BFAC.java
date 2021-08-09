@@ -249,8 +249,13 @@ public class BFAC implements Runnable {
 		level1.add(filename + ".bak");
 
 		// LEVEL 2
+		level2.add(filename + "1");
+		level2.add(filename + "bak");
+		level2.add(filename + "inc");
+		level2.add(filename + "old");
 		level2.add(filename + "_");
 		level2.add(filename + "~~");
+		level2.add(filename + "_backup");
 		level2.add(filename + "_bak");
 		level2.add(filename + "-bak");
 		level2.add(filename + ".bk");
@@ -298,6 +303,9 @@ public class BFAC implements Runnable {
 		level3.add(filenameNoExt + ".orig");
 		level3.add(filenameNoExt + ".original");
 		level3.add(filenameNoExt + ".sql");
+		level3.add(filenameNoExt + ".war");
+		level3.add(filenameNoExt + ".wim");
+		level3.add(filenameNoExt + ".xz");
 		level3.add(filename + "%00");
 		level3.add(filename + "%01");
 		level3.add("~" + filename);
@@ -322,33 +330,77 @@ public class BFAC implements Runnable {
 		level3.add(filename + ".0");
 		level3.add(filename + ".1");
 		level3.add(filename + ".2");
+		level3.add(filename + ".ar");
 		level3.add(filename + ".arc");
+		level3.add(filename + ".bz2");
+		level3.add(filename + ".cbz");
+		level3.add(filename + ".ear");
+		level3.add(filename + ".exe");
+		level3.add(filename + ".gz");
 		level3.add(filename + ".inc");
+		level3.add(filename + ".jar");
 		level3.add(filename + ".lst");
+		level3.add(filename + ".lzma");
+		level3.add(filename + ".war");
+		level3.add(filename + ".wim");
+		level3.add(filename + ".xz");
 		level3.add(".~lock." + filename + "%23");
 		level3.add(".~" + filename);
 		level3.add("~%24" + filename);
+		level3.add(filenameNoExt + ".1");
+		level3.add(filenameNoExt + ".7z");
+		level3.add(filenameNoExt + ".ar");
+		level3.add(filenameNoExt + ".bz2");
+		level3.add(filenameNoExt + ".cbz");
+		level3.add(filenameNoExt + ".ear");
+		level3.add(filenameNoExt + ".exe");
+		level3.add(filenameNoExt + ".gz");
+		level3.add(filenameNoExt + ".inc");
+		level3.add(filenameNoExt + ".include");
+		level3.add(filenameNoExt + ".jar");
+		level3.add(filenameNoExt + ".lzma");
 
 		// LEVEL 4
 		level4.add(filename + ".tar");
 		level4.add(filename + ".rar");
 		level4.add(filename + ".zip");
 		level4.add("~" + filenameNoExt + ".tmp");
+		level4.add(filename + ".tar.7z");
+		level4.add(filename + ".tar.bz2");
 		level4.add(filename + ".tar.gz");
+		level4.add(filename + ".tar.lzma");
+		level4.add(filename + ".tar.xz");
 		level4.add("backup-" + filename);
+		level4.add("backup_" + filename);
+		level4.add("bak-" + filename);
+		level4.add("bak_" + filename);
 		level4.add(filenameNoExt + "-backup." + fileExt);
 		level4.add(filenameNoExt + "-bkp." + fileExt);
 		level4.add(filenameNoExt + ".tar");
 		level4.add(filenameNoExt + ".rar");
 		level4.add(filenameNoExt + ".zip");
+		level4.add(filenameNoExt + ".tar.7z");
+		level4.add(filenameNoExt + ".tar.bz2");
 		level4.add(filenameNoExt + ".tar.gz");
-		level4.add(filenameNoExt + ".sql.gz");
+		level4.add(filenameNoExt + ".tar.lzma");
+		level4.add(filenameNoExt + ".tar.xz");
 		level4.add(filenameNoExt + ".bak.sql");
 		level4.add(filenameNoExt + ".bak.sql.gz");
 		level4.add(filenameNoExt + ".bak.sql.bz2");
 		level4.add(filenameNoExt + ".bak.sql.tar.gz");
 		level4.add(filename + "."); // CVE-2017-12616
 		level4.add(filename + "::$DATA"); // CVE-2017-12616
+		level4.add(filenameNoExt + "1");
+		level4.add(filenameNoExt + "1." + fileExt);
+		level4.add(filenameNoExt + "_backup");
+		level4.add(filenameNoExt + "_backup" + fileExt);
+		level4.add(filenameNoExt + "_bak");
+		level4.add(filenameNoExt + "_bak" + fileExt);
+		level4.add(filenameNoExt + "_old");
+		level4.add(filenameNoExt + "_old" + fileExt);
+		level4.add(filenameNoExt + "bak");
+		level4.add(filenameNoExt + "inc");
+		level4.add(filenameNoExt + "old");
 
 		// LEVEL 5
 		level5.add(".git/HEAD");
