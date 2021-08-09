@@ -23,10 +23,10 @@ The pluggin is written in Java for better integration with BurpSuite Extender AP
 
 Download [BFAC.jar][jar] on your computer. Then import the jar file as a Burp plugin :
 
-0. Open Burp
-1. Click on the "Extender" tab
-2. Click on the "Add" button
-3. Set extension type to Java and load [BFAC.jar][jar] by clicking on "Select file..."
+1. Open Burp
+2. Click on the "Extender" tab
+3. Click on the "Add" button
+4. Set extension type to Java and load [BFAC.jar][jar] by clicking on "Select file..."
 
 ![Install step 1](static/install_step_1.png)
 
@@ -42,7 +42,7 @@ Sitemap fulfillment will not be covered here, however it can be accomplish using
 
 Once your sitemap is full, you have 2 options.
 
-### The old way 
+### The old way
 
 [BFAC][bfac] original tool may provide interesting options that are not provided by this extension. That why you can extract interesting URLs from the sitemap using the "Extract URL".
 
@@ -57,6 +57,15 @@ Then, you only have to provide the extracted URLs to the [BFAC][bfac] tool :
 If you do not have [BFAC][bfac] on your computer or want to gain time, you can just click on "Run BFAC" to run a Java implementation of BFAC :
 
 ![BFAC Console](static/screenshot_dark.png)
+
+## Why not using Burp scanner ?
+
+Burp Scanner already provides a backup file feature for the Burp Suite Enterprise and Burp Suite Professional ([see #006000d8_backup-file](https://portswigger.net/kb/issues/006000d8_backup-file)).
+
+1. Performing a backup file check only will require more manual configuration on Burp scanner.
+2. Burp scanner will not cover multiple backup file formats (see [Benchmark][DIFF]).
+
+> Note : This plugin has been considered by its author and PortSwigger as an alternative of the Burp scanner feature, that's why you won't find the extension on [BApp store][BApp].
 
 ## Build the JAR
 
@@ -77,3 +86,5 @@ The [Site-map-extractor][sitemapextactor] BurpSuite plugin written by [@swright5
 [jar]:bin/BFAC.jar
 [sitemap]:https://portswigger.net/burp/documentation/desktop/tools/target/site-map
 [devburp]:https://portswigger.net/burp/extender/writing-your-first-burp-suite-extension
+[BApp]:https://portswigger.net/bappstore
+[DIFF]:DIFF.md
