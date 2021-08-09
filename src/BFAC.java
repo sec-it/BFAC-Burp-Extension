@@ -318,6 +318,7 @@ public class BFAC implements Runnable {
 		level3.add(filename + ".bck");
 		level3.add(filename + ".bakup");
 		level3.add(filenameNoExt + ".saved");
+		level3.add(filenameNoExt + ".bac");
 		level3.add(filenameNoExt + ".back");
 		level3.add(filenameNoExt + ".bck");
 		level3.add(filenameNoExt + ".bakup");
@@ -330,6 +331,7 @@ public class BFAC implements Runnable {
 		level3.add(filename + ".0");
 		level3.add(filename + ".1");
 		level3.add(filename + ".2");
+		level3.add(filename + ".7z");
 		level3.add(filename + ".ar");
 		level3.add(filename + ".arc");
 		level3.add(filename + ".bz2");
