@@ -79,6 +79,10 @@ To build the jar, create new Java project under your Java IDE (i.e. Eclipse). Cr
 
 The [Site-map-extractor][sitemapextactor] BurpSuite plugin written by [@swright573][swright573] has been a great source of inspiration and helped us to better understand BurpSuite Extender API from a "sitemap" point of view.
 
+## Author
+
+Made by Alex G. ([@zeecka_](https://twitter.com/Zeecka_)), pentester at SEC-IT.
+
 [bfac]:https://github.com/mazen160/bfac
 [mazen160]:https://twitter.com/mazen160
 [sitemapextactor]:https://github.com/swright573/site-map-extractor
